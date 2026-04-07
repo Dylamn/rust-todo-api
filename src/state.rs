@@ -1,13 +1,14 @@
 use super::models::task::Task;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 pub struct AppState {
-    pub tasks: Mutex<Vec<Task>>,
+    pub tasks: RwLock<Vec<Arc<Task>>>,
 }
 
 pub fn init_state() -> Arc<AppState> {
     let state = AppState {
-        tasks: Mutex::new(vec![Task::new(1, "A static task".to_string())]),
+        tasks: RwLock::new(vec![]),
     };
 
     Arc::new(state)

@@ -1,10 +1,11 @@
 use super::Status;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Task {
-    pub id: u32,
+    pub id: Uuid,
     pub description: String,
     pub status: Status,
     pub created_at: DateTime<Utc>,
@@ -12,7 +13,7 @@ pub struct Task {
 }
 
 impl Task {
-    pub fn new(id: u32, description: String) -> Self {
+    pub fn new(id: Uuid, description: String) -> Self {
         Self {
             id,
             description,
@@ -29,7 +30,7 @@ mod test {
 
     #[test]
     fn should_create_new_task() {
-        let task_id = 1;
+        let task_id = Uuid::new_v4();
         let task_description = "Test task";
 
         let task = Task::new(task_id, task_description.to_string());
