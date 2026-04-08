@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use axum_test::TestServer;
 use std::sync::Arc;
 use tokio::sync::RwLock;
