@@ -1,5 +1,6 @@
+use crate::error::ApiError;
 use crate::models::{Status, Task};
-use crate::state::{AppState};
+use crate::state::AppState;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::routing::{delete, get, post, put};
@@ -41,16 +42,16 @@ async fn index(State(state): State<Arc<AppState>>) -> Json<Vec<Arc<Task>>> {
 async fn create(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<TaskCreate>,
-) -> (StatusCode, Json<Arc<Task>>) {
+) -> Result<(StatusCode, Json<Arc<Task>>), ApiError> {
     let ident = Uuid::new_v4();
-    let new_task = Arc::new(Task::new(ident, payload.description));
+    let new_task = Arc::new(Task::new(ident, payload.description)?);
 
     {
         let mut tasks = state.tasks.write().await;
         tasks.push(new_task.clone());
     }
 
-    (StatusCode::CREATED, Json(new_task))
+    Ok((StatusCode::CREATED, Json(new_task)))
 }
 
 #[allow(dead_code)]
@@ -58,9 +59,13 @@ async fn update(
     State(state): State<Arc<AppState>>,
     Path(ident): Path<Uuid>,
     Json(payload): Json<TaskUpdate>,
-) -> Json<Arc<Task>> {
+) -> Result<Json<Arc<Task>>, ApiError> {
     let mut tasks = state.tasks.write().await;
-    let pos = tasks.iter().position(|t| t.id == ident).unwrap();
+    let pos = tasks
+        .iter()
+        .position(|t| t.id == ident)
+        .ok_or(ApiError::NotFound)?;
+
     let old_task = &tasks[pos];
 
     let mut new_task = (**old_task).clone();
@@ -75,7 +80,7 @@ async fn update(
     let new_task = Arc::new(new_task);
     tasks[pos] = Arc::clone(&new_task);
 
-    Json(new_task)
+    Ok(Json(new_task))
 }
 
 #[allow(dead_code)]
