@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-axum = { version = "0.8.8", features = ["macros"] }
+axum = "0.8.8"
 chrono = { version = "0.4.44", features = ["serde"] }
 serde = { version = "1.0.228", features = ["derive", "rc"] }
 serde_json = "1.0.149"
@@ -13,4 +13,5 @@ tokio = { version = "1.50.0", features = ["macros", "rt-multi-thread"] }
 uuid = { version = "1.23.0", features = ["serde", "v4"] }
 
 [dev-dependencies]
+axum = { version = "0.8.8", features = ["macros"] }
 axum-test = "20.0.0"
