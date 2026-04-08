@@ -1,13 +1,13 @@
-use std::sync::Arc;
+use crate::error::ApiError;
+use crate::models::Task;
+use crate::services::task_service;
+use crate::state::AppState;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::Json;
-use chrono::Utc;
 use serde::Deserialize;
+use std::sync::Arc;
 use uuid::Uuid;
-use crate::error::ApiError;
-use crate::models::{Status, Task};
-use crate::state::AppState;
 
 #[derive(Deserialize)]
 pub(crate) struct TaskCreate {
@@ -29,8 +29,7 @@ pub async fn create_task(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<TaskCreate>,
 ) -> Result<(StatusCode, Json<Arc<Task>>), ApiError> {
-    let ident = Uuid::new_v4();
-    let new_task = Arc::new(Task::new(ident, payload.description)?);
+    let new_task = Arc::new(task_service::create_task(payload.description)?);
 
     {
         let mut tasks = state.tasks.write().await;
@@ -55,11 +54,9 @@ pub async fn update_task(
 
     let mut new_task = (**old_task).clone();
     if payload.done {
-        new_task.completed_at = Some(Utc::now());
-        new_task.status = Status::Completed;
+        task_service::mark_task_done(&mut new_task);
     } else {
-        new_task.completed_at = None;
-        new_task.status = Status::Pending;
+        task_service::mark_task_pending(&mut new_task);
     }
 
     let new_task = Arc::new(new_task);
@@ -68,7 +65,10 @@ pub async fn update_task(
     Ok(Json(new_task))
 }
 
-pub async fn destroy_task(State(state): State<Arc<AppState>>, Path(ident): Path<Uuid>) -> StatusCode {
+pub async fn destroy_task(
+    State(state): State<Arc<AppState>>,
+    Path(ident): Path<Uuid>,
+) -> StatusCode {
     {
         let mut tasks = state.tasks.write().await;
 
