@@ -1,3 +1,4 @@
+pub mod db;
 mod error;
 mod handlers;
 pub mod models;

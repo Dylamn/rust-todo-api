@@ -7,7 +7,7 @@ mod common;
 
 #[tokio::test]
 async fn should_mark_task_as_done() {
-    let (state, id) = common::create_task_in_state("A task to complete");
+    let (state, id) = common::create_task_in_state("A task to complete").await;
     let server = common::setup_with_state(state);
 
     let response = server
@@ -28,7 +28,7 @@ async fn should_mark_task_as_done() {
 
 #[tokio::test]
 async fn should_mark_task_as_not_done_after_completion() {
-    let (state, id) = common::create_task_in_state("A task to reopen");
+    let (state, id) = common::create_task_in_state("A task to reopen").await;
     let server = common::setup_with_state(state);
 
     server
@@ -54,7 +54,7 @@ async fn should_mark_task_as_not_done_after_completion() {
 
 #[tokio::test]
 async fn should_return_not_found_for_unknown_task() {
-    let server = common::setup();
+    let server = common::setup().await;
     let unknown_id = Uuid::new_v4();
 
     let response = server

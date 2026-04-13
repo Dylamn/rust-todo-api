@@ -7,7 +7,7 @@ mod common;
 
 #[tokio::test]
 async fn should_return_empty_list_when_no_tasks() {
-    let server = common::setup();
+    let server = common::setup().await;
 
     let response = server.get("/tasks").await;
 
@@ -18,7 +18,7 @@ async fn should_return_empty_list_when_no_tasks() {
 
 #[tokio::test]
 async fn should_list_all_created_tasks() {
-    let state = common::populate_state_with_tasks(vec!["Learn Rust", "Learn Python"]);
+    let state = common::populate_state_with_tasks(vec!["Learn Rust", "Learn Python"]).await;
     let server = common::setup_with_state(state);
 
     let response = server.get("/tasks").await;
