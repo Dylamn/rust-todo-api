@@ -1,6 +1,6 @@
 -- Dialect is sqlite
 CREATE TABLE tasks (
-    id INTEGER PRIMARY KEY,
+    id TEXT PRIMARY KEY,
     description TEXT NOT NULL,
     status TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

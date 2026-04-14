@@ -19,22 +19,16 @@ pub(crate) struct TaskUpdate {
     done: bool,
 }
 
-pub async fn list_tasks(State(state): State<Arc<AppState>>) -> Json<Vec<Arc<Task>>> {
-    let tasks = state.tasks.read().await;
-
-    Json(tasks.clone())
+pub async fn list_tasks(State(state): State<Arc<AppState>>) -> Result<Json<Vec<Task>>, ApiError> {
+    let tasks = task_service::list_tasks(&state.db).await?;
+    Ok(Json(tasks))
 }
 
 pub async fn create_task(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<TaskCreate>,
-) -> Result<(StatusCode, Json<Arc<Task>>), ApiError> {
-    let new_task = Arc::new(task_service::create_task(payload.description)?);
-
-    {
-        let mut tasks = state.tasks.write().await;
-        tasks.push(new_task.clone());
-    }
+) -> Result<(StatusCode, Json<Task>), ApiError> {
+    let new_task = task_service::create_task(&state.db, payload.description).await?;
 
     Ok((StatusCode::CREATED, Json(new_task)))
 }
@@ -44,6 +38,7 @@ pub async fn update_task(
     Path(ident): Path<Uuid>,
     Json(payload): Json<TaskUpdate>,
 ) -> Result<Json<Arc<Task>>, ApiError> {
+    task_service::find_task_by_id(&state.db, ident).await?;
     let mut tasks = state.tasks.write().await;
     let pos = tasks
         .iter()

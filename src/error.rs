@@ -1,7 +1,7 @@
 use crate::models::TaskDescriptionError;
-use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
+use axum::Json;
 use serde::Serialize;
 use thiserror::Error;
 
@@ -24,6 +24,9 @@ pub enum ApiError {
 
     #[error("{message}")]
     UnprocessableContent { code: &'static str, message: String },
+
+    #[error("Internal server error")]
+    InternalError,
 }
 
 impl IntoResponse for ApiError {
@@ -34,6 +37,12 @@ impl IntoResponse for ApiError {
             ApiError::UnprocessableContent { code, message } => {
                 (StatusCode::UNPROCESSABLE_ENTITY, code, message)
             }
+
+            ApiError::InternalError => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "internal_error",
+                self.to_string(),
+            ),
         };
 
         let body = ErrorResponse {
@@ -41,6 +50,18 @@ impl IntoResponse for ApiError {
         };
 
         (http_status, Json(body)).into_response()
+    }
+}
+
+impl From<anyhow::Error> for ApiError {
+    fn from(error: anyhow::Error) -> Self {
+        match error.downcast::<TaskDescriptionError>() {
+            Ok(e) => ApiError::from(e),
+            Err(error) => {
+                eprintln!("Error: {}", error);
+                Self::InternalError
+            }
+        }
     }
 }
 

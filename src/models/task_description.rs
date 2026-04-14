@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use sqlx::Sqlite;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -9,7 +10,7 @@ pub enum TaskDescriptionError {
     TooLong,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Decode, sqlx::Encode)]
 #[serde(try_from = "String")]
 pub struct TaskDescription(String);
 
@@ -39,6 +40,12 @@ impl TryFrom<&str> for TaskDescription {
         }
 
         Ok(Self(value.to_string()))
+    }
+}
+
+impl sqlx::Type<sqlx::Sqlite> for TaskDescription {
+    fn type_info() -> <Sqlite as sqlx::Database>::TypeInfo {
+        <String as sqlx::Type<Sqlite>>::type_info()
     }
 }
 
